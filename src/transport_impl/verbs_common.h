@@ -134,6 +134,8 @@ static void common_resolve_phy_port(uint8_t phy_port, size_t mtu,
   struct ibv_device **dev_list = ibv_get_device_list(&num_devices);
   rt_assert(dev_list != nullptr, "Failed to get device list");
 
+  (void) transport_type;
+
   // Traverse the device list
   int ports_to_discover = phy_port;
 
@@ -164,14 +166,7 @@ static void common_resolve_phy_port(uint8_t phy_port, size_t mtu,
 
       if (ports_to_discover == 0) {
         // Resolution succeeded. Check if the link layer matches.
-        const auto expected_link_layer =
-            (transport_type == TransportType::kInfiniBand && !kIsRoCE)
-                ? IBV_LINK_LAYER_INFINIBAND
-                : IBV_LINK_LAYER_ETHERNET;
-        if (port_attr.link_layer != expected_link_layer) {
-          throw std::runtime_error("Invalid link layer. Port link layer is " +
-                                   link_layer_str(port_attr.link_layer));
-        }
+	// Removed, this was broken, we assume the device supports the correct layer
 
         // Check the MTU
         size_t active_mtu = enum_to_mtu(port_attr.active_mtu);

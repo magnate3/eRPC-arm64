@@ -139,7 +139,8 @@ static void common_resolve_phy_port(uint8_t phy_port, size_t mtu,
   // Traverse the device list
   int ports_to_discover = phy_port;
 
-  for (int dev_i = 0; dev_i < num_devices; dev_i++) {
+  int dev_i = 2;
+  //for (int dev_i = 0; dev_i < num_devices; dev_i++) {
     struct ibv_context *ib_ctx = ibv_open_device(dev_list[dev_i]);
     rt_assert(ib_ctx != nullptr, "Failed to open dev " + std::to_string(dev_i));
 
@@ -220,7 +221,7 @@ static void common_resolve_phy_port(uint8_t phy_port, size_t mtu,
       xmsg << "Failed to close device " << ib_ctx->device->name;
       throw std::runtime_error(xmsg.str());
     }
-  }
+  //}
 
   // If we are here, port resolution has failed
   assert(resolve.ib_ctx == nullptr);

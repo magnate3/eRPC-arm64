@@ -34,9 +34,9 @@ static inline size_t lsb_index(int x) {
 /// bit is 1. (x = 0 returns 0, x = 1 returns 1.)
 static inline size_t msb_index(int x) {
   assert(x < INT32_MAX / 2);
-  int index;
-  asm("bsrl %1, %0" : "=r"(index) : "r"(x << 1));
-  return static_cast<size_t>(index);
+  // clz is undefined for 0
+  if (x == 0) return 0;
+  return static_cast<size_t>(__builtin_clz(static_cast<unsigned int>(x << 1))) ^ 31;
 }
 
 /// C++11 constexpr ceil

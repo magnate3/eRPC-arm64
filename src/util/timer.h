@@ -14,17 +14,16 @@ namespace erpc {
 
 /// Return the TSC
 static inline size_t rdtsc() {
+#if defined(__x86_64__)
+  uint64_t rax;
+  uint64_t rdx;
+  asm volatile("rdtsc" : "=a"(rax), "=d"(rdx));
+  return static_cast<size_t>((rdx << 32) | rax);
+#elif defined(__aarch64__)
   uint64_t val;
-  #if defined(__x86_64__)
-    uint64_t rax;
-    uint64_t rdx;
-    asm volatile("rdtsc" : "=a"(rax), "=d"(rdx));
-    return static_cast<size_t>((rdx << 32) | rax);
-  #elif defined(__aarch64__)
-    uint64_t val;
-    asm volatile("mrs %0, cntvct_el0" : "=r" (val));
-    return static_cast<size_t>(val);
-  #endif
+  asm volatile("mrs %0, cntvct_el0" : "=r" (val));
+  return static_cast<size_t>(val);
+#endif
 }
 
 /// An alias for rdtsc() to distinguish calls on the critical path

@@ -12,6 +12,11 @@ void TlsRegistry::init() {
   etid = cur_etid_++;
 }
 
+
+bool TlsRegistry::is_init() {
+  return tls_initialized;
+}
+
 void TlsRegistry::reset() {
   tls_initialized = false;
   etid = SIZE_MAX;

@@ -59,6 +59,8 @@ class Nexus {
   int register_req_func(uint8_t req_type, erpc_req_func_t req_func,
                         ReqFuncType req_func_type = ReqFuncType::kForeground);
 
+  TlsRegistry tls_registry_;     ///< A thread-local registry
+
  private:
   enum class BgWorkItemType : bool { kReq, kResp };
 
@@ -169,7 +171,6 @@ class Nexus {
   const uint16_t sm_udp_port_;   ///< UDP port for session management
   const size_t numa_node_;       ///< The NUMA node for this process
   const size_t num_bg_threads_;  ///< Background threads to process Rpc reqs
-  TlsRegistry tls_registry_;     ///< A thread-local registry
 
   /// The ground truth for registered request functions
   std::array<ReqFunc, kReqTypeArraySize> req_func_arr_;

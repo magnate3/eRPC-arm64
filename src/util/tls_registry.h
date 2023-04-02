@@ -13,6 +13,8 @@ class TlsRegistry {
   /// Initialize all the thread-local registry members
   void init();
 
+  bool is_init();
+
   /// Reset all members
   void reset();
 

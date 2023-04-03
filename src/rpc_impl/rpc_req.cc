@@ -14,7 +14,7 @@ void Rpc<TTr>::enqueue_request(int session_num, uint8_t req_type,
   // When called from a background thread, enqueue to the foreground thread
   if (unlikely(!in_dispatch())) {
     auto req_args = enq_req_args_t(session_num, req_type, req_msgbuf,
-                                   resp_msgbuf, cont_func, tag, get_etid());
+                                   resp_msgbuf, cont_func, tag, cont_etid);
     bg_queues_.enqueue_request_.unlocked_push(req_args);
     return;
   }

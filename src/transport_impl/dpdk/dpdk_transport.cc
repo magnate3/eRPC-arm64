@@ -166,6 +166,7 @@ DpdkTransport::~DpdkTransport() {
   rt_assert(ret == 0, "Failed to free QP\n");
 }
 
+#if 0
 void DpdkTransport::resolve_phy_port() {
   struct rte_ether_addr mac;
   rte_eth_macaddr_get(phy_port_, &mac);
@@ -224,6 +225,44 @@ void DpdkTransport::resolve_phy_port() {
       ipv4_to_string(htonl(resolve_.ipv4_addr_)).c_str(), resolve_.reta_size_,
       resolve_.bandwidth_ * 8.0 / (1000 * 1000 * 1000));
 }
+#else
+void DpdkTransport::resolve_phy_port() {
+#ifndef SCONE
+		struct rte_ether_addr mac;
+#else
+		struct ether_addr mac;
+#endif
+		rte_eth_macaddr_get(phy_port_, &mac);
+		memcpy(resolve_.mac_addr_, &mac.addr_bytes, sizeof(resolve_.mac_addr_));
+
+		resolve_.ipv4_addr_ = get_port_ipv4_addr(phy_port_);
+
+		// Resolve bandwidth
+		struct rte_eth_link link;
+		rte_eth_link_get(static_cast<uint8_t>(phy_port_), &link);
+		rt_assert(link.link_status == ETH_LINK_UP,
+				"Port " + std::to_string(phy_port_) + " is down.");
+
+		if (link.link_speed != ETH_SPEED_NUM_NONE) {
+			// link_speed is in Mbps. The 10 Gbps check below is just a sanity check.
+			rt_assert(link.link_speed >= 10000, "Link too slow");
+			resolve_.bandwidth_ =
+				static_cast<size_t>(link.link_speed) * 1000 * 1000 / 8.0;
+		} else {
+			ERPC_WARN(
+					"Port %u bandwidth not reported by DPDK. Using default 10 Gbps.\n",
+					phy_port_);
+			link.link_speed = 10000;
+			resolve_.bandwidth_ = 10.0 * (1000 * 1000 * 1000) / 8.0;
+		}
+
+		ERPC_INFO("Resolved port %u: MAC %s, IPv4 %s, bandwidth %.1f Gbps\n",
+				phy_port_, mac_to_string(resolve_.mac_addr).c_str(),
+				ipv4_to_string(htonl(resolve_.ipv4_addr)).c_str(),
+				resolve_.bandwidth_ * 8.0 / (1000 * 1000 * 1000));
+	}
+
+#endif
 
 /// Tokenize the input string by the delimiter into a vector
 static std::vector<std::string> ipconfig_helper_split(std::string input,

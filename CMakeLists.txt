@@ -43,7 +43,7 @@ add_subdirectory(third_party/gflags)
 include_directories(SYSTEM third_party/asio/include)
 
 # Add additional compilation flags only after adding subprojects
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -Wextra -Werror -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -Wextra -Werror -Wno-pedantic -Wno-missing-field-initializers -Wno-unused-parameter")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion -Wold-style-cast -Wno-unused-function")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nested-anon-types -Wno-keyword-macro -Wno-deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-address-of-packed-member -Wno-parentheses -fPIC")
@@ -339,7 +339,7 @@ if(DPDK_NEEDED STREQUAL "true")
       message(FATAL_ERROR "DPDK library not found")
     endif()
 
-    set(LIBRARIES ${LIBRARIES} -Wl,--whole-archive dpdk -Wl,--no-whole-archive numa dl ibverbs mlx4 mlx5)
+    set(LIBRARIES ${LIBRARIES} -Bsymbolic -fPIC  -no-pie  -L/root/dpdk-stable-19.11.1/arm64-armv8a-linuxapp-gcc/lib/  -Wl,--whole-archive dpdk -Wl,--no-whole-archive numa dl ibverbs mlx4 mlx5)
 
     # DPDK include directory. Locating rte_config.h does not work on some systems.
     # Example: it may be kept in /usr/include/x86_64-linux-gnu/, and symlinked

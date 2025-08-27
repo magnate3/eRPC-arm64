@@ -1,10 +1,3 @@
-
-
-# references
-[Treaty/eRPC/](https://github.com/TUM-DSE/Treaty/tree/bcf16fca6b9ba0007516a27238a87cffb5ec7e63/eRPC)
-
-# eRPC
-
 eRPC is a fast and general-purpose RPC library for datacenter networks.
 Our NSDI 2019 [paper](https://www.usenix.org/system/files/nsdi19-kalia.pdf)
 describes the system in detail.

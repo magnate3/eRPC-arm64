@@ -1,0 +1,624 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fd3739e..c9a228f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -43,10 +43,12 @@ add_subdirectory(third_party/gflags)
+ include_directories(SYSTEM third_party/asio/include)
+ 
+ # Add additional compilation flags only after adding subprojects
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -Wextra -Werror -pedantic")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -Wextra -Werror -Wno-pedantic -Wno-missing-field-initializers -Wno-unused-parameter")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion -Wold-style-cast -Wno-unused-function")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nested-anon-types -Wno-keyword-macro -Wno-deprecated-declarations")
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-address-of-packed-member -Wno-parentheses -fPIC")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-address-of-packed-member -Wno-parentheses ")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
++#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -DERPC_LOG_LEVEL=3")
+ 
+ include_directories(${CMAKE_SOURCE_DIR}/src)
+ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/third_party)
+@@ -332,14 +334,19 @@ if(DPDK_NEEDED STREQUAL "true")
+       "-Wl,/SUBSYSTEM:CONSOLE" "-lkernel32" "-luser32" "-lgdi32" "-lwinspool"
+       "-lshell32" "-lole32" "-loleaut32" "-luuid" "-lcomdlg32" "-liphlpapi")
+ 
+-  else(WIN32)
++  else(NOT WIN32)
+     message(STATUS "DPDK for Linux")
+     find_library(DPDK_LIB dpdk)
+     if(NOT DPDK_LIB)
+       message(FATAL_ERROR "DPDK library not found")
+     endif()
+ 
+-    set(LIBRARIES ${LIBRARIES} -Wl,--whole-archive dpdk -Wl,--no-whole-archive numa dl ibverbs mlx4 mlx5)
++    #add_compile_options(-fPIC)
++    #add_compile_options(-mcmodel=large)
++
++    #set(LIBRARIES ${LIBRARIES} -L/arm64-armv8a-linuxapp-gcc/lib -Wl,--as-needed -L/root/dpdk-stable-19.11.1/arm64-armv8a-linuxapp-gcc/lib/  -Wl,--whole-archive  -Wl,-lrte_acl  -Wl,-lrte_bbdev  -Wl,-lrte_bitratestats  -Wl,-lrte_bpf  -Wl,-lrte_bus_dpaa  -Wl,-lrte_bus_fslmc  -Wl,-lrte_bus_ifpga  -Wl,-lrte_bus_pci  -Wl,-lrte_bus_vdev  -Wl,-lrte_bus_vmbus  -Wl,-lrte_cfgfile  -Wl,-lrte_cmdline  -Wl,-lrte_common_cpt  -Wl,-lrte_common_dpaax  -Wl,-lrte_compressdev  -Wl,-lrte_cryptodev  -Wl,-lrte_distributor  -Wl,-lrte_eal  -Wl,-lrte_efd  -Wl,-lrte_ethdev  -Wl,-lrte_eventdev  -Wl,-lrte_fib  -Wl,-lrte_flow_classify  -Wl,-lrte_gro  -Wl,-lrte_gso  -Wl,-lrte_hash  -Wl,-lrte_ip_frag  -Wl,-lrte_ipsec  -Wl,-lrte_jobstats  -Wl,-lrte_kni  -Wl,-lrte_kvargs  -Wl,-lrte_latencystats  -Wl,-lrte_lpm  -Wl,-lrte_mbuf  -Wl,-lrte_member  -Wl,-lrte_mempool  -Wl,-lrte_mempool_bucket  -Wl,-lrte_mempool_dpaa  -Wl,-lrte_mempool_dpaa2  -Wl,-lrte_mempool_ring  -Wl,-lrte_mempool_stack  -Wl,-lrte_meter  -Wl,-lrte_metrics  -Wl,-lrte_net  -Wl,-lrte_pci  -Wl,-lrte_pdump  -Wl,-lrte_pipeline  -Wl,-lrte_pmd_af_packet  -Wl,-lrte_pmd_ark  -Wl,-lrte_pmd_atlantic  -Wl,-lrte_pmd_axgbe  -Wl,-lrte_pmd_bbdev_fpga_lte_fec  -Wl,-lrte_pmd_bbdev_null  -Wl,-lrte_pmd_bbdev_turbo_sw  -Wl,-lrte_pmd_bnxt  -Wl,-lrte_pmd_bond  -Wl,-lrte_pmd_caam_jr  -Wl,-lrte_pmd_crypto_scheduler  -Wl,-lrte_pmd_cxgbe  -Wl,-lrte_pmd_dpaa  -Wl,-lrte_pmd_dpaa2  -Wl,-lrte_pmd_dpaa2_event  -Wl,-lrte_pmd_dpaa2_sec  -Wl,-lrte_pmd_dpaa_event  -Wl,-lrte_pmd_dpaa_sec  -Wl,-lrte_pmd_dsw_event  -Wl,-lrte_pmd_e1000  -Wl,-lrte_pmd_ena  -Wl,-lrte_pmd_enetc  -Wl,-lrte_pmd_enic  -Wl,-lrte_pmd_failsafe  -Wl,-lrte_pmd_hinic  -Wl,-lrte_pmd_hns3  -Wl,-lrte_pmd_i40e  -Wl,-lrte_pmd_iavf  -Wl,-lrte_pmd_ice  -Wl,-lrte_pmd_ifc  -Wl,-lrte_pmd_ixgbe  -Wl,-lrte_pmd_kni  -Wl,-lrte_pmd_lio  -Wl,-lrte_pmd_memif  -Wl,-lrte_pmd_netvsc  -Wl,-lrte_pmd_nfp  -Wl,-lrte_pmd_nitrox  -Wl,-lrte_pmd_null  -Wl,-lrte_pmd_null_crypto  -Wl,-lrte_pmd_octeontx_crypto  -Wl,-lrte_pmd_octeontx_zip  -Wl,-lrte_pmd_opdl_event  -Wl,-lrte_pmd_pfe  -Wl,-lrte_pmd_qat  -Wl,-lrte_pmd_qede  -Wl,-lrte_pmd_ring  -Wl,-lrte_pmd_skeleton_event  -Wl,-lrte_pmd_softnic  -Wl,-lrte_pmd_sw_event  -Wl,-lrte_pmd_tap  -Wl,-lrte_pmd_thunderx_nicvf  -Wl,-lrte_pmd_vdev_netvsc  -Wl,-lrte_pmd_vhost  -Wl,-lrte_pmd_virtio  -Wl,-lrte_pmd_virtio_crypto  -Wl,-lrte_pmd_vmxnet3_uio  -Wl,-lrte_port  -Wl,-lrte_power  -Wl,-lrte_rawdev  -Wl,-lrte_rawdev_dpaa2_cmdif  -Wl,-lrte_rawdev_dpaa2_qdma  -Wl,-lrte_rawdev_ntb  -Wl,-lrte_rawdev_skeleton  -Wl,-lrte_rcu  -Wl,-lrte_reorder  -Wl,-lrte_rib  -Wl,-lrte_ring  -Wl,-lrte_sched  -Wl,-lrte_security  -Wl,-lrte_stack  -Wl,-lrte_table  -Wl,-lrte_timer  -Wl,-lrte_vhost  -Wl,-lm  -Wl,-lpthread  -Wl,-lrt -Wl,-ldl -Wl,--no-whole-archive -lnuma )
++    set(LIBRARIES ${LIBRARIES}  -L/root/dpdk-stable-19.11.1/arm64-armv8a-linuxapp-gcc/lib/  -Wl,--whole-archive -ldpdk -Wl,--no-whole-archive -lnuma -ldl )
++    #set(LIBRARIES ${LIBRARIES} -Bsymbolic -fPIC  -no-pie  -L/root/dpdk-stable-19.11.1/arm64-armv8a-linuxapp-gcc/lib/  -Wl,--whole-archive -ldpdk -Wl,--no-whole-archive numa dl ibverbs mlx4 mlx5)
+ 
+     # DPDK include directory. Locating rte_config.h does not work on some systems.
+     # Example: it may be kept in /usr/include/x86_64-linux-gnu/, and symlinked
+@@ -367,6 +374,7 @@ add_library(erpc ${SOURCES})
+ if(DPDK_NEEDED STREQUAL "true")
+   if (NOT WIN32)
+     # Build the eRPC DPDK management daemon for Linux only
++    #set(LIBRARIES ${LIBRARIES}    -L/root/dpdk-stable-19.11.1//build/lib -Wl,--as-needed -L/root/dpdk-stable-19.11.1/arm64-armv8a-linuxapp-gcc/lib/  -Wl,--whole-archive  -Wl,-ldpdk  -Wl,-lrt  -Wl,-lm  -Wl,-lpthread  -Wl,-ldl -Wl,--no-whole-archive -lnuma  )
+     add_executable(erpc_dpdk_daemon
+       src/transport_impl/dpdk/dpdk_daemon.cc
+       src/transport_impl/dpdk/dpdk_externs.cc
+diff --git a/hello_world/Makefile b/hello_world/Makefile
+index ed0307f..38aa98a 100644
+--- a/hello_world/Makefile
++++ b/hello_world/Makefile
+@@ -16,19 +16,21 @@ raw:
+ 	g++ -g -std=c++11 -o client client.cc -I ../src -I ../third_party/asio/include -L ../build $(LIBS) -libverbs -DERPC_RAW=true
+ dpdk:
+ 	g++ -g -std=c++11 -o server server.cc \
++		-no-pie \
+ 		-Wno-deprecated-declarations \
+ 		-DERPC_DPDK=true -march=native \
+ 		-I ../src -I ../third_party/asio/include -I /usr/include/dpdk \
+ 		-L ../build $(LIBS) \
+-		-Wl,--whole-archive -ldpdk -Wl,--no-whole-archive \
++		-Wl,--whole-archive  -L ../build/libdpdk  -ldpdk -Wl,--no-whole-archive \
+ 		-lnuma -ldl -libverbs -lmlx4 -lmlx5
+ 
+ 	g++ -g -std=c++11 -o client client.cc \
++		-no-pie \
+ 		-Wno-deprecated-declarations \
+ 		-DERPC_DPDK=true -march=native \
+ 		-I ../src -I ../third_party/asio/include -I /usr/include/dpdk \
+ 		-L ../build $(LIBS) \
+-		-Wl,--whole-archive -ldpdk -Wl,--no-whole-archive \
++		-Wl,--whole-archive  -L ../build/libdpdk -ldpdk -Wl,--no-whole-archive \
+ 		-lnuma -ldl -libverbs -lmlx4 -lmlx5
+ clean:
+ 	rm server client
+diff --git a/hello_world/common.h b/hello_world/common.h
+index bea2668..679dfe5 100644
+--- a/hello_world/common.h
++++ b/hello_world/common.h
+@@ -1,8 +1,8 @@
+ #include <stdio.h>
+ #include "rpc.h"
+ 
+-static const std::string kServerHostname = "win-erpc1";
+-static const std::string kClientHostname = "win-erpc-2";
++static const std::string kServerHostname = "192.168.16.251";
++static const std::string kClientHostname = "192.168.16.81";
+ 
+ static constexpr uint16_t kUDPPort = 31850;
+ static constexpr uint8_t kReqType = 2;
+diff --git a/src/rpc_impl/rpc.cc b/src/rpc_impl/rpc.cc
+index 2976946..4511fa6 100644
+--- a/src/rpc_impl/rpc.cc
++++ b/src/rpc_impl/rpc.cc
+@@ -32,6 +32,7 @@ Rpc<TTr>::Rpc(Nexus *nexus, void *context, uint8_t rpc_id,
+   rt_assert(!nexus->rpc_id_exists(rpc_id), "Rpc ID already exists");
+   rt_assert(phy_port < kMaxPhyPorts, "Invalid physical port");
+   rt_assert(numa_node_ < kMaxNumaNodes, "Invalid NUMA node");
++  printf("*************** numa_node is %u \n",static_cast<unsigned int>(numa_node_));
+ 
+   tls_registry_ = &nexus->tls_registry_;
+   tls_registry_->init();  // Initialize thread-local variables for this thread
+diff --git a/src/rpc_impl/rpc_rx.cc b/src/rpc_impl/rpc_rx.cc
+index c8a70d5..101e6b2 100644
+--- a/src/rpc_impl/rpc_rx.cc
++++ b/src/rpc_impl/rpc_rx.cc
+@@ -22,6 +22,7 @@ void Rpc<TTr>::process_comps_st() {
+     // XXX: This acts as a stopgap function to filter non-eRPC packets, like
+     // broadcast/ARP packets.
+     if (unlikely(!pkthdr->check_magic())) {
++      //ERPC_TRACE(
+       ERPC_INFO(
+           "Rpc %u: Received %s with invalid magic. Packet headroom = %s. "
+           "Dropping.\n",
+@@ -33,7 +34,8 @@ void Rpc<TTr>::process_comps_st() {
+     assert(pkthdr->msg_size_ <= kMaxMsgSize);  // msg_size can be 0 here
+ 
+     if (unlikely(pkthdr->dest_session_num_ >= session_vec_.size())) {
+-      ERPC_WARN(
++      ERPC_TRACE(
++      //ERPC_WARN(
+           "Rpc %u: Received %s for a session yet to be connected. Dropping.\n",
+           rpc_id_, pkthdr->to_string().c_str());
+       continue;
+@@ -47,6 +49,7 @@ void Rpc<TTr>::process_comps_st() {
+     }
+ 
+     if (unlikely(!session->is_connected())) {
++      //ERPC_TRACE(
+       ERPC_WARN(
+           "Rpc %u: Received %s for unconnected session (state %s). Dropping.\n",
+           rpc_id_, pkthdr->to_string().c_str(),
+@@ -56,7 +59,7 @@ void Rpc<TTr>::process_comps_st() {
+ 
+     // If we are here, we have a valid packet for a connected session
+     ERPC_TRACE(
+-        "Rpc %u, lsn %u (%s): RX %s.\n", rpc_id_, session->local_session_num_,
++        "valid rpc packet, Rpc %u, lsn %u (%s): RX %s.\n", rpc_id_, session->local_session_num_,
+         session->get_remote_hostname().c_str(), pkthdr->to_string().c_str());
+ 
+     const size_t sslot_i = pkthdr->req_num_ % kSessionReqWindow;  // Bit shift
+diff --git a/src/transport.h b/src/transport.h
+index a7fef0b..629b895 100644
+--- a/src/transport.h
++++ b/src/transport.h
+@@ -23,7 +23,7 @@ enum class TransportType { kInfiniBand, kRaw, kDPDK, kFake, kInvalid };
+ /// Generic unreliable transport
+ class Transport {
+  public:
+-  static constexpr size_t kNumRxRingEntries = 4096;
++  static constexpr size_t kNumRxRingEntries = 128;
+   static_assert(is_power_of_two<size_t>(kNumRxRingEntries), "");
+ 
+   static constexpr size_t kMaxRoutingInfoSize = 48;  ///< Space for routing info
+diff --git a/src/transport_impl/dpdk/dpdk_daemon.cc b/src/transport_impl/dpdk/dpdk_daemon.cc
+index 0940cf0..e30c2f0 100644
+--- a/src/transport_impl/dpdk/dpdk_daemon.cc
++++ b/src/transport_impl/dpdk/dpdk_daemon.cc
+@@ -46,11 +46,14 @@ int main(int argc, char **argv) {
+       "eRPC DPDK daemon or primary DPDK process already running?");
+ 
+   ERPC_WARN("eRPC DPDK daemon: Successfully initialized DPDK EAL\n");
++  uint16_t nb_ports;
++  nb_ports = rte_eth_dev_count_avail();
++  ERPC_WARN("Number of Ports: %d\n", nb_ports);
+ 
+   const std::string memzone_name = erpc::DpdkTransport::get_memzone_name();
+   const rte_memzone *memzone = rte_memzone_reserve(
+       memzone_name.c_str(), sizeof(erpc::DpdkTransport::ownership_memzone_t),
+-      FLAGS_numa_node, RTE_MEMZONE_2MB);
++      FLAGS_numa_node, RTE_MEMZONE_512MB);
+   erpc::rt_assert(memzone != nullptr,
+                   "eRPC DPDK daemon: Failed to create memzone");
+   ERPC_WARN("eRPC DPDK daemon: Successfully initialized shared memzone %s\n",
+diff --git a/src/transport_impl/dpdk/dpdk_init.cc b/src/transport_impl/dpdk/dpdk_init.cc
+index ba168f8..14a3a5d 100644
+--- a/src/transport_impl/dpdk/dpdk_init.cc
++++ b/src/transport_impl/dpdk/dpdk_init.cc
+@@ -8,16 +8,56 @@
+ 
+ #include "dpdk_externs.h"
+ #include "dpdk_transport.h"
++#include <rte_ethdev.h>
++#include <rte_version.h>
++#include <rte_thash.h>
++#include <rte_flow.h>
+ 
+ namespace erpc {
+ 
++#if RTE_VERSION < RTE_VERSION_NUM(21, 0, 0, 0)
++#define RTE_ETH_MQ_RX_NONE              ETH_MQ_RX_NONE
++#define RTE_ETH_MQ_TX_NONE              ETH_MQ_TX_NONE
++
++#define RTE_ETH_TX_OFFLOAD_IPV4_CKSUM   DEV_TX_OFFLOAD_IPV4_CKSUM
++#define RTE_ETH_TX_OFFLOAD_TCP_CKSUM    DEV_TX_OFFLOAD_TCP_CKSUM
++#define RTE_ETH_TX_OFFLOAD_UDP_CKSUM    DEV_TX_OFFLOAD_UDP_CKSUM
++#define RTE_ETH_TX_OFFLOAD_VLAN_INSERT  DEV_TX_OFFLOAD_VLAN_INSERT
++#define RTE_ETH_RX_OFFLOAD_VLAN_STRIP   DEV_RX_OFFLOAD_VLAN_STRIP
++
++#define RTE_ETH_RSS_IPV4                ETH_RSS_IPV4
++#define RTE_ETH_RSS_FRAG_IPV4           ETH_RSS_FRAG_IPV4
++#define RTE_ETH_RSS_IPV6                ETH_RSS_IPV6
++#define RTE_ETH_RSS_FRAG_IPV6           ETH_RSS_FRAG_IPV6
++
++#define RTE_ETH_RSS_NONFRAG_IPV4_UDP    ETH_RSS_NONFRAG_IPV4_UDP
++#define RTE_ETH_RSS_NONFRAG_IPV6_UDP    ETH_RSS_NONFRAG_IPV6_UDP
++#define RTE_ETH_RSS_NONFRAG_IPV4_TCP    ETH_RSS_NONFRAG_IPV4_TCP
++#define RTE_ETH_RSS_NONFRAG_IPV6_TCP    ETH_RSS_NONFRAG_IPV6_TCP
++
++#define RTE_ETH_MQ_RX_RSS               ETH_MQ_RX_RSS
++#endif
++#define RSS_HASH_KEY_LENGTH 40
++#define RSS_NONE            0
++#define RSS_L3              1
++#define RSS_L3L4            2
++static uint8_t rss_hash_key_symmetric_be[RSS_HASH_KEY_LENGTH];
++static uint8_t rss_hash_key_symmetric[RSS_HASH_KEY_LENGTH] = {
++    0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
++    0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
++    0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
++    0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
++    0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
++};
+ constexpr uint8_t DpdkTransport::kDefaultRssKey[];
+ 
++#if 0
+ void DpdkTransport::setup_phy_port(uint16_t phy_port, size_t numa_node,
+                                    DpdkProcType proc_type) {
+   _unused(proc_type);
+   uint16_t num_ports = rte_eth_dev_count_avail();
+-  if (phy_port >= num_ports) {
++  if (phy_port > num_ports) {
++  //if (phy_port >= num_ports) {
+     fprintf(stderr,
+             "Error: Port %u (0-based) requested, but only %u DPDK ports "
+             "available. Please ensure:\n",
+@@ -37,33 +77,38 @@ void DpdkTransport::setup_phy_port(uint16_t phy_port, size_t numa_node,
+             library_path == nullptr ? "not set" : library_path);
+     rt_assert(false);
+   }
+-
++#if 0
+   rte_eth_dev_info dev_info;
+   rte_eth_dev_info_get(phy_port, &dev_info);
++  fprintf(stderr,"phy port %u, port avail %u ,dev_info.rx_desc_lim.nb_max %d and dev_info.tx_desc_lim.nb_max %d \n",phy_port,num_ports,dev_info.rx_desc_lim.nb_max,dev_info.tx_desc_lim.nb_max);
+   rt_assert(dev_info.rx_desc_lim.nb_max >= kNumRxRingEntries,
+             "Device RX ring too small");
+   rt_assert(dev_info.tx_desc_lim.nb_max >= kNumTxRingDesc,
+             "Device TX ring too small");
+   ERPC_INFO("Initializing port %u with driver %s\n", phy_port,
+             dev_info.driver_name);
+-
++#endif
+   // Create per-thread RX and TX queues
+   rte_eth_conf eth_conf;
+   memset(&eth_conf, 0, sizeof(eth_conf));
+ 
+   if (!kIsWindows) {
++#if 0
+     eth_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+     eth_conf.lpbk_mode = 1;
+     eth_conf.rx_adv_conf.rss_conf.rss_key =
+         const_cast<uint8_t *>(kDefaultRssKey);
+     eth_conf.rx_adv_conf.rss_conf.rss_key_len = 40;
+     eth_conf.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_UDP;
++#else
++    eth_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
++#endif
+   } else {
+     eth_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
+   }
+ 
+   eth_conf.txmode.mq_mode = ETH_MQ_TX_NONE;
+-  eth_conf.txmode.offloads = kOffloads;
++  //eth_conf.txmode.offloads = kOffloads;
+ 
+   int ret = rte_eth_dev_configure(phy_port, kMaxQueuesPerPort,
+                                   kMaxQueuesPerPort, &eth_conf);
+@@ -100,7 +145,219 @@ void DpdkTransport::setup_phy_port(uint16_t phy_port, size_t numa_node,
+   }
+ 
+   rte_eth_dev_start(phy_port);
++#if 1
++  num_ports = rte_eth_dev_count_avail();
++  rte_eth_dev_info dev_info;
++  rte_eth_dev_info_get(phy_port, &dev_info);
++  fprintf(stderr,"phy port %u, port avail %u ,dev_info.rx_desc_lim.nb_max %d and dev_info.tx_desc_lim.nb_max %d \n",phy_port,num_ports,dev_info.rx_desc_lim.nb_max,dev_info.tx_desc_lim.nb_max);
++  rt_assert(dev_info.rx_desc_lim.nb_max >= kNumRxRingEntries,
++            "Device RX ring too small");
++  rt_assert(dev_info.tx_desc_lim.nb_max >= kNumTxRingDesc,
++            "Device TX ring too small");
++  ERPC_INFO("Initializing port %u with driver %s\n", phy_port,
++            dev_info.driver_name);
++#endif
++}
++#else
++static uint64_t rss_get_rss_hf(struct rte_eth_dev_info *dev_info, uint8_t rss, bool ipv6)
++{
++    uint64_t offloads = 0;
++    uint64_t ipv4_flags = 0;
++    uint64_t ipv6_flags = 0;
++
++    offloads = dev_info->flow_type_rss_offloads;
++    if (rss == RSS_L3) {
++        ipv4_flags = RTE_ETH_RSS_IPV4 | RTE_ETH_RSS_FRAG_IPV4;
++        ipv6_flags = RTE_ETH_RSS_IPV6 | RTE_ETH_RSS_FRAG_IPV6;
++    } else if (rss == RSS_L3L4) {
++        ipv4_flags = RTE_ETH_RSS_NONFRAG_IPV4_UDP | RTE_ETH_RSS_NONFRAG_IPV4_TCP;
++        ipv6_flags = RTE_ETH_RSS_NONFRAG_IPV6_UDP | RTE_ETH_RSS_NONFRAG_IPV6_TCP;
++    }
++
++    if (ipv6) {
++        if ((offloads & ipv6_flags) == 0) {
++            return 0;
++        }
++    } else {
++        if ((offloads & ipv4_flags) == 0) {
++            return 0;
++        }
++    }
++
++    return (offloads & (ipv4_flags | ipv6_flags));
+ }
++int rss_config_port(struct rte_eth_conf *conf, struct rte_eth_dev_info *dev_info)
++{
++    uint64_t rss_hf = 0;
++    struct rte_eth_rss_conf *rss_conf = NULL;
++
++    rss_conf = &conf->rx_adv_conf.rss_conf;
++#if 0
++    if (g_config.rss == RSS_AUTO) {
++        if (g_config.mq_rx_rss) {
++            conf->rxmode.mq_mode = RTE_ETH_MQ_RX_RSS;
++            rss_conf->rss_hf = rss_get_rss_hf(dev_info, g_config.rss_auto);
++        }
++        return 0;
++    }
++#endif
++    rss_hf = rss_get_rss_hf(dev_info, RSS_L3L4,false);
++    //rss_hf = rss_get_rss_hf(dev_info, RSS_L3,false);
++    if (rss_hf == 0) {
++        return -1;
++    }
++
++    conf->rxmode.mq_mode = RTE_ETH_MQ_RX_RSS;
++#if DEBUG_I40E
++#else
++    rss_conf->rss_key = rss_hash_key_symmetric;
++    rss_conf->rss_key_len = RSS_HASH_KEY_LENGTH,
++#endif
++    rss_conf->rss_hf = rss_hf;
++
++    return 0;
++}
++void rss_init(void)
++{
++    rte_convert_rss_key(reinterpret_cast<const uint32_t*>(rss_hash_key_symmetric),
++                        reinterpret_cast<uint32_t*>(rss_hash_key_symmetric_be), RSS_HASH_KEY_LENGTH);
++}
++void DpdkTransport::setup_phy_port(uint16_t phy_port, size_t numa_node,
++                                   DpdkProcType proc_type) {
++	int ret;
++	struct rte_eth_conf port_conf = {
++#if RTE_VERSION < RTE_VERSION_NUM(20, 0, 0, 0)
++		.rxmode = {
++                        .mq_mode = ETH_MQ_RX_NONE,
++			.split_hdr_size = 0,
++		},
++#else
++                .rxmode = {
++                ///.mq_mode = RTE_ETH_MQ_RX_NONE,
++                .max_lro_pkt_size = 1024,
++                //.max_rx_pkt_len = RTE_ETHER_MAX_LEN,
++                },
++#endif
++		.txmode = {
++			.offloads =
++				DEV_TX_OFFLOAD_VLAN_INSERT |
++				DEV_TX_OFFLOAD_IPV4_CKSUM  |
++				DEV_TX_OFFLOAD_UDP_CKSUM   |
++				DEV_TX_OFFLOAD_TCP_CKSUM   |
++				DEV_TX_OFFLOAD_SCTP_CKSUM  |
++				DEV_TX_OFFLOAD_TCP_TSO,
++		},
++	};
++	struct rte_eth_txconf txq_conf;
++	struct rte_eth_rxconf rxq_conf;
++	struct rte_eth_dev_info dev_info;
++        struct rte_eth_conf dev_conf;
++        printf("phy_port is %u, state : %u, valid : %d \n",phy_port,rte_eth_devices[phy_port].state, rte_eth_dev_is_valid_port(phy_port));
++	ret = rte_eth_dev_info_get(phy_port, &dev_info);
++	if (ret != 0)
++        {
++                printf("get phy_port  %u info fail \n",phy_port);
++		rte_exit(EXIT_FAILURE,
++			"Error during getting device (port %u) info: %s\n",
++			phy_port, strerror(-ret));
++
++        }
++#if 1
++        rss_init();
++        rss_config_port(&dev_conf,&dev_info);
++#endif
++        if(dev_info.flow_type_rss_offloads & RTE_ETH_RSS_IPV4) {
++            printf("support RTE_ETH_RSS_IPV4 \n");
++        }
++        if(dev_info.flow_type_rss_offloads &  RTE_ETH_RSS_FRAG_IPV4) {
++            printf("support  RTE_ETH_RSS_FRAG_IPV4\n");
++        }
++        if(dev_info.flow_type_rss_offloads &  RTE_ETH_RSS_NONFRAG_IPV4_UDP) {
++            printf("support  RTE_ETH_RSS_NONFRAG_IPV4_UDP\n");
++        }
++        if(dev_info.flow_type_rss_offloads &  RTE_ETH_RSS_NONFRAG_IPV4_TCP) {
++            printf("support  RTE_ETH_RSS_NONFRAG_IPV4_TCP\n");
++        }
++	port_conf.txmode.offloads &= dev_info.tx_offload_capa;
++        port_conf.rx_adv_conf.rss_conf = dev_conf.rx_adv_conf.rss_conf;
++        port_conf.rxmode.mq_mode = dev_conf.rxmode.mq_mode; 
++	printf(":: initializing port: %d\n", phy_port);
++	ret = rte_eth_dev_configure(phy_port,
++				kMaxQueuesPerPort, kMaxQueuesPerPort, &port_conf);
++	if (ret < 0) {
++		rte_exit(EXIT_FAILURE,
++			":: cannot configure device: err=%d, port=%u\n",
++			ret, phy_port);
++	}
++
++	rxq_conf = dev_info.default_rxconf;
++	rxq_conf.offloads = port_conf.rxmode.offloads;
++	txq_conf = dev_info.default_txconf;
++	txq_conf.offloads = port_conf.txmode.offloads;
++  for (size_t i = 0; i < kMaxQueuesPerPort; i++) {
++    const std::string pname = get_mempool_name(phy_port, i);
++    rte_mempool *mempool =
++        rte_pktmbuf_pool_create(pname.c_str(), kNumMbufs, 0 /* cache */,
++                                0 /* priv size */, kMbufSize, numa_node);
++    rt_assert(mempool != nullptr, "Mempool create failed: " + dpdk_strerror() +"\n");
++
++    int ret = rte_eth_rx_queue_setup(phy_port, i, kNumRxRingEntries, numa_node,
++                                     &rxq_conf, mempool);
++    rt_assert(ret == 0, "Failed to setup RX queue: " + std::to_string(i) +
++                            ". Error " + strerror(-1 * ret) + "\n");
++
++    ret = rte_eth_tx_queue_setup(phy_port, i, kNumTxRingDesc, numa_node,
++                                 &txq_conf);
++    rt_assert(ret == 0, "Failed to setup TX queue: " + std::to_string(i) + "\n");
++  }
++    printf(":: initializing port: %d queue done\n", phy_port);
++#if 0
++	rxq_conf = dev_info.default_rxconf;
++	rxq_conf.offloads = port_conf.rxmode.offloads;
++	for (i = 0; i < nr_queues; i++) {
++                //printf("setup %u queue \n",i);
++		ret = rte_eth_rx_queue_setup(phy_port, i, NUM_OF_DESC,
++				     rte_eth_dev_socket_id(phy_port),
++				     &rxq_conf,
++				     mbuf_pool);
++		if (ret < 0) {
++			rte_exit(EXIT_FAILURE,
++				":: Rx queue setup failed: err=%d, port=%u\n",
++				ret, phy_port);
++		}
++	}
++
++	txq_conf = dev_info.default_txconf;
++	txq_conf.offloads = port_conf.txmode.offloads;
++
++	for (i = 0; i < nr_queues; i++) {
++		ret = rte_eth_tx_queue_setup(phy_port, i, NUM_OF_DESC,
++				rte_eth_dev_socket_id(phy_port),
++				&txq_conf);
++		if (ret < 0) {
++			rte_exit(EXIT_FAILURE,
++				":: Tx queue setup failed: err=%d, port=%u\n",
++				ret, phy_port);
++		}
++	}
++#endif
++	ret = rte_eth_promiscuous_enable(phy_port);
++	if (ret != 0)
++		rte_exit(EXIT_FAILURE,
++			":: promiscuous mode enable failed: err=%s, port=%u\n",
++			rte_strerror(-ret), phy_port);
++
++	ret = rte_eth_dev_start(phy_port);
++	if (ret < 0) {
++		rte_exit(EXIT_FAILURE,
++			"rte_eth_dev_start:err=%d, port=%u\n",
++			ret, phy_port);
++	}
++
++
++	printf(":: initializing port: %d done\n", phy_port);
++}
++#endif
+ 
+ }  // namespace erpc
+ 
+diff --git a/src/transport_impl/dpdk/dpdk_transport.cc b/src/transport_impl/dpdk/dpdk_transport.cc
+index 755648e..76ba105 100644
+--- a/src/transport_impl/dpdk/dpdk_transport.cc
++++ b/src/transport_impl/dpdk/dpdk_transport.cc
+@@ -46,7 +46,8 @@ DpdkTransport::DpdkTransport(uint16_t sm_udp_port, uint8_t rpc_id,
+           "-c",            "0x0",
+           "-n",            "6",  // Memory channels
+           "-m",            "1024", // Max memory in megabytes
+-          "--proc-type",   "auto",
++          "--proc-type",   "secondary",
++          //"--proc-type",   "auto",
+           "--log-level",   (ERPC_LOG_LEVEL >= ERPC_LOG_LEVEL_INFO) ? "8" : "0",
+           nullptr};
+       // clang-format on
+@@ -55,6 +56,9 @@ DpdkTransport::DpdkTransport(uint16_t sm_udp_port, uint8_t rpc_id,
+           static_cast<int>(sizeof(rte_argv) / sizeof(rte_argv[0])) - 1;
+       int ret = rte_eal_init(rte_argc, const_cast<char **>(rte_argv));
+       rt_assert(ret >= 0, "Failed to initialize DPDK");
++      uint16_t nb_ports;
++      nb_ports = rte_eth_dev_count_avail();
++      printf("Number of Ports: %d\n", nb_ports);
+ 
+       // rte_eal_init() sets process core affinity to only core #0, undo this
+       clear_affinity_for_process();
+@@ -140,7 +144,8 @@ DpdkTransport::DpdkTransport(uint16_t sm_udp_port, uint8_t rpc_id,
+ 
+     g_dpdk_lock.unlock();
+   }
+-
++  int nb_ports = rte_eth_dev_count_avail();
++  rt_assert(0 != nb_ports,"rte_eth_dev_count_avail() == 0");
+   resolve_phy_port();
+   init_mem_reg_funcs();
+ 
+@@ -166,6 +171,7 @@ DpdkTransport::~DpdkTransport() {
+   rt_assert(ret == 0, "Failed to free QP\n");
+ }
+ 
++#if 0
+ void DpdkTransport::resolve_phy_port() {
+   struct rte_ether_addr mac;
+   rte_eth_macaddr_get(phy_port_, &mac);
+@@ -224,6 +230,49 @@ void DpdkTransport::resolve_phy_port() {
+       ipv4_to_string(htonl(resolve_.ipv4_addr_)).c_str(), resolve_.reta_size_,
+       resolve_.bandwidth_ * 8.0 / (1000 * 1000 * 1000));
+ }
++#else
++void DpdkTransport::resolve_phy_port() {
++#ifndef SCONE
++		struct rte_ether_addr mac;
++#else
++		struct ether_addr mac;
++#endif
++		rte_eth_macaddr_get(phy_port_, &mac);
++		memcpy(resolve_.mac_addr_, &mac.addr_bytes, sizeof(resolve_.mac_addr_));
++
++		resolve_.ipv4_addr_ = get_port_ipv4_addr(phy_port_);
++		// Resolve bandwidth
++                printf("phy_port_ is %u \n",phy_port_);
++#if 0
++		struct rte_eth_link link;
++		rte_eth_link_get(static_cast<uint8_t>(phy_port_), &link);
++                printf("phy_port_ is %u link status up ? %u \n",phy_port_, link.link_status == ETH_LINK_UP);
++		rt_assert(link.link_status == ETH_LINK_UP,
++				"Port " + std::to_string(phy_port_) + " is down. \n");
++
++		if (link.link_speed != ETH_SPEED_NUM_NONE) {
++			// link_speed is in Mbps. The 10 Gbps check below is just a sanity check.
++			rt_assert(link.link_speed >= 10000, "Link too slow");
++			resolve_.bandwidth_ =
++				static_cast<size_t>(link.link_speed) * 1000 * 1000 / 8.0;
++		} else {
++			ERPC_WARN(
++					"Port %u bandwidth not reported by DPDK. Using default 10 Gbps.\n",
++					phy_port_);
++			link.link_speed = 10000;
++			resolve_.bandwidth_ = 10.0 * (1000 * 1000 * 1000) / 8.0;
++		}
++#else
++			//link.link_speed = 10000;
++			resolve_.bandwidth_ = 10.0 * (1000 * 1000 * 1000) / 8.0;
++#endif
++		ERPC_INFO("Resolved port %u: MAC %s, IPv4 %s, bandwidth %.1f Gbps\n",
++				phy_port_, mac_to_string(resolve_.mac_addr_).c_str(),
++				ipv4_to_string(htonl(resolve_.ipv4_addr_)).c_str(),
++				resolve_.bandwidth_ * 8.0 / (1000 * 1000 * 1000));
++	}
++
++#endif
+ 
+ /// Tokenize the input string by the delimiter into a vector
+ static std::vector<std::string> ipconfig_helper_split(std::string input,
+diff --git a/src/util/huge_alloc.cc b/src/util/huge_alloc.cc
+index 0439c81..127e130 100644
+--- a/src/util/huge_alloc.cc
++++ b/src/util/huge_alloc.cc
+@@ -7,7 +7,7 @@
+ #include <sys/ipc.h>
+ #include <sys/shm.h>
+ #endif
+-
++#define HUGE_PAGESIZE (1ul << 29)
+ namespace erpc {
+ 
+ HugeAlloc::HugeAlloc(size_t initial_size, size_t numa_node,
+@@ -76,7 +76,7 @@ Buffer HugeAlloc::alloc_raw(size_t size, DoRegister do_register) {
+   std::ostringstream xmsg;  // The exception message
+   size = round_up<kHugepageSize>(size);
+   int shm_key, shm_id;
+-
++  size = (size + HUGE_PAGESIZE) & ~(HUGE_PAGESIZE - 1);
+   while (true) {
+     // Choose a positive SHM key. Negative is fine but it looks scary in the
+     // error message.
+@@ -129,7 +129,8 @@ Buffer HugeAlloc::alloc_raw(size_t size, DoRegister do_register) {
+   // Bind the buffer to the NUMA node
+   const unsigned long nodemask =
+       (1ul << static_cast<unsigned long>(numa_node_));
+-  long ret = mbind(shm_buf, size, MPOL_BIND, &nodemask, 32, 0);
++  printf("mbind size is %u \n",static_cast<unsigned int> (size)); 
++  long ret = mbind(shm_buf, size, MPOL_BIND, &nodemask, 2, 0);
+   rt_assert(ret == 0,
+             "eRPC HugeAlloc: mbind() failed. Key " + std::to_string(shm_key));
+ 
